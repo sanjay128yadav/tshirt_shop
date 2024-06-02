@@ -1,0 +1,22 @@
+{% extends "./base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+    <form method="post" action="/login/">
+        {% csrf_token %}
+        <div class="col-lg-4 mx-auto border round p-3 mt-4">
+            <h4 class="display-6">Login Here</h4>
+            <hr>
+            <div class="text-center">
+            <img height="90px" src="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.flipkart.com%2Ftshirt-makers-typography-women-round-neck-light-blue-t-shirt%2Fp%2Fitmb9b8bff549aca%3Fpid%3DTSHGFF5YKKVVSRHP%26lid%3DLSTTSHGFF5YKKVVSRHPXURTFN%26marketplace%3DFLIPKART%26cmpid%3Dcontent_t-shirt_8965229628_gmc&psig=AOvVaw39SvJX22bZ7joFf9_OYCJY&ust=1717005129607000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCKiowtj0sIYDFQAAAAAdAAAAABAJ">
+            </div>    
+            {{ form | crispy }}
+
+            <div class="form-group">
+                <input class="btn btn-info" type="submit" value="Login">
+            </div>
+        </div> 
+    </form> 
+
+{% endblock %}
