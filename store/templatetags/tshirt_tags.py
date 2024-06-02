@@ -24,3 +24,10 @@ def sale_price(tshirt):
     salePrice = floor(price - (price * (discount / 100) ))
     return salePrice
 
+@register.simple_tag
+def get_active_size_button_class(active_size, size):
+    if active_size.size == size.size:
+        return "dark"
+    else:
+        return "light"
+

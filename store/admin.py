@@ -9,7 +9,9 @@ class SizeVariantConfiguration(admin.TabularInline):
     model = SizeVariant
 
 class TshirtConfiguration(admin.ModelAdmin):
-    inlines  = [ SizeVariantConfiguration ]    
+    inlines  = [ SizeVariantConfiguration ] 
+    list_display = ['name' , 'slug']
+    #list_editable = ['slug']   
 
 admin.site.register(Tshirt , TshirtConfiguration)
 admin.site.register(Brand)

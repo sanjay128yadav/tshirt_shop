@@ -83,19 +83,19 @@ def signout(request):
     logout(request)
     return render(request , template_name='store/home.html')
 
-def show_prduct(request , id):
-    tshirt = Tshirt.objects.get(pk=id)
+def show_prduct(request , slug):
+    tshirt = Tshirt.objects.get(slug=slug)    
     
     if request.GET.get('size'):
         sizeget = request.GET.get('size')
-    else:
-        sizeget = 'S'
+    else:        
+        sizeget = tshirt.sizevariant_set.all().order_by('price').first().size
 
     sizeobj = tshirt.sizevariant_set.get(size = sizeget)
     size_price = sizeobj.price
     sale_price = size_price - (size_price * (tshirt.discount / 100))    
     context = {
-        'tshirt': tshirt , 'price': size_price , 'sale_price': sale_price
+        'tshirt': tshirt , 'price': size_price , 'sale_price': sale_price, 'active_size': sizeobj
     }
     return render(request, template_name='store/product_detail.html', context= context)
 

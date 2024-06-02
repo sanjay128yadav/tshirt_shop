@@ -27,6 +27,7 @@ class Color(TshirtProperty):
     
 class Tshirt(models.Model):
     name = models.CharField(max_length=50, null=False)
+    slug = models.CharField(max_length=200, null=True, unique=True, default="")
     description = models.CharField(max_length=500, null=True)
     discount = models.IntegerField(default=0)
     image = models.ImageField(upload_to='upload/images/', null=False)

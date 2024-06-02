@@ -9,5 +9,5 @@ urlpatterns = [
     path('signup/', signup ),
     path('login/', login ),
     path('logout/', signout ),
-    path('product/<int:id>' , show_prduct )
+    path('product/<str:slug>' , show_prduct )
 ]

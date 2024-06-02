@@ -25,8 +25,8 @@
                     <div class="row">
                         {% for size in tshirt.sizevariant_set.all %}
                             <div class="col-3 mt-2">
-                                <a href="/product/{{tshirt.id}}?size={{size.size}}">
-                                    <button class="btn btn-light border ">{{ size.size }}</button>
+                                <a href="/product/{{tshirt.slug}}?size={{size.size}}">
+                                    <button class="btn btn-{% get_active_size_button_class active_size size %} border ">{{ size.size }}</button>
                                 </a>
                             </div>
                         {% endfor %}
