@@ -3,7 +3,7 @@ from django.shortcuts import render , HttpResponse , redirect
 from store.forms.authforms import CustomerCreationForm , CustomerAuthForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as loginUser, logout
-from store.models import Tshirt
+from store.models import Tshirt, SizeVariant
 from math import floor
 
 
@@ -11,6 +11,8 @@ from math import floor
 
 def home(request):
     tshirts = Tshirt.objects.all()
+    cart = request.session.get('cart')
+    print(cart)
     """
     for t in tshirts:
         #all_sizes = t.sizevariant_set.all()
@@ -26,7 +28,17 @@ def home(request):
     return render(request , template_name='store/home.html' , context = context)
 
 def cart(request):
-    return render(request , template_name='store/cart.html')
+    cart = request.session.get('cart')
+    if cart is None:
+        cart = []
+
+    for c in cart:
+        tshirt_id = c.get('tshirt')
+        tshirt = Tshirt.objects.get(id=tshirt_id) 
+        c['tshirt']  =  tshirt 
+        c['size'] = SizeVariant.objects.get(tshirt_id = tshirt, size = c['size'])
+    #print(cart)    
+    return render(request , template_name='store/cart.html', context= {'cart':cart})
 def orders(request):
     return render(request , template_name='store/orders.html')
 def login(request):
@@ -98,4 +110,32 @@ def show_prduct(request , slug):
         'tshirt': tshirt , 'price': size_price , 'sale_price': sale_price, 'active_size': sizeobj
     }
     return render(request, template_name='store/product_detail.html', context= context)
+
+def add_to_cart(request, slug, size):
+    #print(slug , size)   
+
+    cart = request.session.get('cart')
+    if cart is None:
+        cart = []
+
+    tshirt = Tshirt.objects.get(slug = slug)
+    flag = True
+    cart_obj = None  # Define cart_obj outside the loop
+    for cart_obj in cart:
+        t_id = cart_obj.get('tshirt')  # Corrected 'thsirt' to 'tshirt'
+        size_temp = cart_obj.get('size')
+        if t_id == tshirt.id and size_temp == size:
+            flag = False
+            cart_obj['quantity'] = cart_obj['quantity'] + 1
+
+    if flag:
+        cart_obj = {
+            'tshirt': tshirt.id,
+            'size': size,
+            'quantity': 1
+        }
+        cart.append(cart_obj) 
+    request.session['cart'] = cart
+    return_url = request.GET.get('return_url')
+    return redirect(return_url)
 

@@ -41,7 +41,7 @@
                             <span class="text-danger"><del>{{ price|rupee}}</del></span>
                             <span>{{ sale_price|rupee}}</span>
                         </div>
-                        <a href="" class="btn btn-block btn-outline-dark">Add To Cart</a>
+                        <a href="/addtocart/{{ tshirt.slug }}/{{ active_size.size }}?return_url={{ request.get_full_path }}" class="btn btn-block btn-outline-dark">Add To Cart</a>
                         <a href="" class="btn btn-block btn-outline-dark">Buy Now</a>
                     </div>
                 </div>

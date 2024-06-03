@@ -41,6 +41,9 @@
             </ul>
 
             <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart">Cart<span class="badge badge-info">{{ request.session.cart|length }}</a>
+                </li>
 
                 {% if request.user.is_authenticated %}
                 
@@ -52,10 +55,7 @@
                 </li>
 
                 {% else %}
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/cart">Cart</a>
-                </li>
+                
                 <li class="nav-item">
                     <a class="nav-link" href="/login">Login</a>
                 </li>                
