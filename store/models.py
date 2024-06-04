@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -58,6 +59,12 @@ class SizeVariant(models.Model):
     price = models.IntegerField(null=False)    
     tshirt = models.ForeignKey(Tshirt, on_delete=models.CASCADE)
     size = models.CharField(choices=SIZE, max_length=5)
+
+class Cart(models.Model):  
+    sizeVariant = models.ForeignKey(SizeVariant , on_delete= models.CASCADE)  
+    quantity = models.IntegerField(default=1)
+    user = models.ForeignKey(User , on_delete = models.CASCADE)
+
 
         
 

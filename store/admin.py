@@ -1,5 +1,5 @@
 from django.contrib import admin
-from store.models import Tshirt, Brand, Color, Occasion, IdealFor, NeckType, Sleeve , SizeVariant
+from store.models import Tshirt, Brand, Color, Occasion, IdealFor, NeckType, Sleeve , SizeVariant, Cart
 
 # Register your models here.
 
@@ -20,3 +20,4 @@ admin.site.register(Occasion)
 admin.site.register(IdealFor)
 admin.site.register(NeckType)
 admin.site.register(Sleeve)
+admin.site.register(Cart)

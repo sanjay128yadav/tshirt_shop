@@ -3,7 +3,7 @@ from django.shortcuts import render , HttpResponse , redirect
 from store.forms.authforms import CustomerCreationForm , CustomerAuthForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as loginUser, logout
-from store.models import Tshirt, SizeVariant
+from store.models import Tshirt, SizeVariant , Cart
 from math import floor
 
 
@@ -55,6 +55,16 @@ def login(request):
             user = authenticate(username = username, password = password)
             if user:
                 loginUser(request , user)
+                cart = Cart.objects.filter(user = user)
+                session_cart = []
+                for c in cart:
+                    obj = {
+                        'size' : c.sizeVariant.size,
+                        'tshirt' : c.sizeVariant.tshirt.id,
+                        'quantity' : c.quantity 
+                    }
+                    session_cart.append(obj)  
+                request.session['cart'] =  session_cart 
                 return redirect('homepage')
         else:
             #form = AuthenticationForm
@@ -112,30 +122,53 @@ def show_prduct(request , slug):
     return render(request, template_name='store/product_detail.html', context= context)
 
 def add_to_cart(request, slug, size):
-    #print(slug , size)   
-
+    user = None    
+    if request.user.is_authenticated:
+       user = request.user 
     cart = request.session.get('cart')
     if cart is None:
         cart = []
 
     tshirt = Tshirt.objects.get(slug = slug)
-    flag = True
+    add_cart_for_anom_user(cart, size, tshirt) 
+
+    if user is not None:        
+        add_cart_to_database(user, size, tshirt)
+        
+    request.session['cart'] = cart
+    return_url = request.GET.get('return_url')
+    return redirect(return_url)
+
+def add_cart_to_database(user , size, tshirt):
+    size_temp =  SizeVariant.objects.get(size = size , tshirt = tshirt)
+    existing =  Cart.objects.filter( user = user , sizeVariant = size_temp)
+    if len(existing) >0:
+        obj = existing[0]   
+        obj.quantity =  obj.quantity +1
+        obj.save() 
+    else:
+        c = Cart()
+        c.user = user
+        c.sizeVariant = size_temp
+        c.quantity = 1
+        c.save()
+
+def add_cart_for_anom_user(cart , size, tshirt):
+    flag = True 
     cart_obj = None  # Define cart_obj outside the loop
     for cart_obj in cart:
         t_id = cart_obj.get('tshirt')  # Corrected 'thsirt' to 'tshirt'
-        size_temp = cart_obj.get('size')
-        if t_id == tshirt.id and size_temp == size:
+        size_short = cart_obj.get('size')
+        if t_id == tshirt.id and size_short == size:
             flag = False
             cart_obj['quantity'] = cart_obj['quantity'] + 1
-
     if flag:
         cart_obj = {
             'tshirt': tshirt.id,
             'size': size,
             'quantity': 1
         }
-        cart.append(cart_obj) 
-    request.session['cart'] = cart
-    return_url = request.GET.get('return_url')
-    return redirect(return_url)
+        cart.append(cart_obj)
+
+
 
