@@ -65,7 +65,37 @@ class Cart(models.Model):
     quantity = models.IntegerField(default=1)
     user = models.ForeignKey(User , on_delete = models.CASCADE)
 
+class Order(models.Model): 
+    orderStatus = (
+        ('PENDING', "Pending"),
+        ('Placed', "Placed"),
+        ('CANCLED', "Cancled"),
+        ('COMPLETED', "Completed"),
+    ) 
+    method = (
+        ('COD', "COD"),
+        ('ONLINE', "Online"),
+    )  
+    order_status = models.CharField(max_length=15 , choices=orderStatus)  
+    payment_method = models.CharField(max_length=15 , choices=method)
+    shipping_address = models.CharField(max_length=100 , default=False)
+    phone = models.CharField(max_length=10 , default=False)
+    user = models.ForeignKey(User , on_delete = models.CASCADE) 
+    total = models.IntegerField(null=False)
+    date = models.DateTimeField(null=False, auto_now_add=True)   
 
-        
+class OrderItem(models.Model):        
+    order = models.ForeignKey(Order , on_delete = models.CASCADE)
+    tshirt = models.ForeignKey(Tshirt , on_delete = models.CASCADE)
+    size = models.ForeignKey(SizeVariant , on_delete = models.CASCADE)
+    quantity = models.IntegerField(null=False)
+    price = models.IntegerField(null=False)
+    date = models.DateTimeField(null=False, auto_now_add=True)
 
+class Payment(models.Model): 
+    order = models.ForeignKey(Order , on_delete = models.CASCADE)
+    date = models.DateTimeField(null=False, auto_now_add=True)  
+    payment_status = models.CharField(max_length=15, default='FAILED')   
+    payment_id = models.CharField(max_length=60)   
+    payment_request_id = models.CharField(max_length=60, default='FAILED', unique=True, null=False)   
 

@@ -3,8 +3,16 @@ from django.shortcuts import render , HttpResponse , redirect
 from store.forms.authforms import CustomerCreationForm , CustomerAuthForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as loginUser, logout
-from store.models import Tshirt, SizeVariant , Cart
+from store.models import Tshirt, SizeVariant , Cart, Order, OrderItem, Payment
 from math import floor
+from django.contrib.auth.decorators import login_required
+from store.forms.checkout_form import CheckoutForm
+
+from django.http import HttpResponse
+from instamojo_wrapper import Instamojo
+from Tshop.settings import API_KEY , AUTH_TOKEN
+
+API = Instamojo(api_key=API_KEY, auth_token=AUTH_TOKEN, endpoint='https://test.instamojo.com/api/1.1/');
 
 
 # Create your views here.
@@ -39,14 +47,24 @@ def cart(request):
         c['size'] = SizeVariant.objects.get(tshirt_id = tshirt, size = c['size'])
     #print(cart)    
     return render(request , template_name='store/cart.html', context= {'cart':cart})
+
+@login_required(login_url = '/login/')    
 def orders(request):
-    return render(request , template_name='store/orders.html')
+    user = request.user
+    orders = Order.objects.filter(user = user)
+    context = {
+        'orders' : orders 
+    }
+    return render(request , template_name='store/orders.html', context = context)
 def login(request):
     if request.method == 'GET':
         form = CustomerAuthForm
+        next_page = request.GET.get('next')
+        if next_page is not None:
+            request.session['next_page'] = next_page
         return render(request , template_name='store/login.html', context= { 'form' : form })
     else:
-        #print(request.POST)
+        print(request.POST)
         form = CustomerAuthForm(data = request.POST)
         
         if form.is_valid():
@@ -55,6 +73,21 @@ def login(request):
             user = authenticate(username = username, password = password)
             if user:
                 loginUser(request , user)
+
+                session_cart = request.session.get('cart')
+                if session_cart is None:
+                    session_cart = []
+                else:
+                    for c in session_cart:
+                        size = c.get('size')
+                        tshirt_id = c.get('tshirt')    
+                        quantity = c.get('quantity')    
+                        cart_obj = Cart()
+                        cart_obj.sizeVariant = SizeVariant.objects.get(size = size , tshirt = tshirt_id)
+                        cart_obj.quantity = quantity
+                        cart_obj.user = user
+                        cart_obj.save()
+
                 cart = Cart.objects.filter(user = user)
                 session_cart = []
                 for c in cart:
@@ -65,7 +98,10 @@ def login(request):
                     }
                     session_cart.append(obj)  
                 request.session['cart'] =  session_cart 
-                return redirect('homepage')
+                next_page = request.session.get('next_page')
+                if next_page is None:
+                    next_page = 'homepage'
+                return redirect(next_page)
         else:
             #form = AuthenticationForm
             return render(request , template_name='store/login.html', context= { 'form' : form })
@@ -169,6 +205,136 @@ def add_cart_for_anom_user(cart , size, tshirt):
             'quantity': 1
         }
         cart.append(cart_obj)
+
+@login_required(login_url = '/login/')
+def checkout(request):
+    # Handle GET request
+    if request.method == 'GET':
+        form = CheckoutForm()
+        cart = request.session.get('cart')
+        if cart is None:
+            cart = []
+
+        for c in cart:
+            size_str = c.get('size')
+            tshirt_id = c.get('tshirt')
+            size_obj  = SizeVariant.objects.get(size = size_str , tshirt = tshirt_id)   
+            c['size'] = size_obj
+            c['tshirt'] =  size_obj.tshirt  
+            
+        return render(request , template_name='store/checkout.html' , context= { 'form' : form , 'cart': cart })
+    else:
+        # Handle POST request        
+        form = CheckoutForm(request.POST)
+        user = None
+        if request.user.is_authenticated:
+            user = request.user
+        if form.is_valid():
+            # Pament
+            cart = request.session.get('cart')
+            if cart is None:
+                cart = []
+
+            for c in cart:
+                size_str = c.get('size')
+                tshirt_id = c.get('tshirt')
+                size_obj  = SizeVariant.objects.get(size = size_str , tshirt = tshirt_id)   
+                c['size'] = size_obj
+                c['tshirt'] =  size_obj.tshirt  
+
+            shipping_address = form.cleaned_data.get('shipping_address')
+            phone = form.cleaned_data.get('phone')
+            payment_method = form.cleaned_data.get('payment_method') 
+            total = calc_total_payble_amount(cart)
+            print(shipping_address , phone, payment_method, total)
+
+            order = Order()
+            order.shipping_address = shipping_address
+            order.phone = phone
+            order.payment_method = payment_method
+            order.total = total
+            order.order_status = "PENDING"
+            order.user = user
+            order.save()
+
+            # for saving order items
+            for c in cart:
+                order_item = OrderItem()
+                order_item.order = order
+                size = c.get('size')
+                tshirt = c.get('tshirt')
+                order_item.price =  floor( size.price - (size.price * (tshirt.discount / 100) ))
+                order_item.quantity = c.get('quantity')
+                order_item.size = size
+                order_item.tshirt = tshirt
+                order_item.save()
+
+            # Creating Payment            
+            response = API.payment_request_create(
+                amount=order.total,
+                purpose='Payment for Tshirts',
+                send_email=False,
+                buyer_name= f'{ user.first_name} {user.last_name}',
+                email=user.email,
+                redirect_url="http://localhost:8000/validate_payment"
+                ) 
+            print(user.first_name, user.last_name, user.email,'WIP', user)
+            payment_request_id = response['payment_request']['id'] 
+            url = response['payment_request']['longurl'] 
+
+            payment = Payment()
+            payment.order = order 
+            payment.payment_request_id = payment_request_id
+            payment.save()            
+            #return HttpResponse("Checkout successful")
+            return redirect(url)
+        else:
+            return redirect('/checkout/')  
+
+#utility function
+def calc_total_payble_amount(cart):    
+    total = 0
+    for c in cart:        
+        discount = c.get('tshirt').discount
+        price = c.get('size').price        
+        sale_price = floor(price - (price * (discount / 100) ))
+        total_of_single_product = sale_price * c.get('quantity')
+        total = total + total_of_single_product
+    return total 
+
+def validatePayment(request):
+    user = None
+    if request.user.is_authenticated:
+        user = request.user
+    payment_request_id = request.GET.get('payment_request_id')
+    payment_id = request.GET.get('payment_id')  
+    # Create a new Payment Request
+    response = API.payment_request_payment_status(payment_request_id, payment_id)
+    # status = response['payment_request']['payment']['status']
+    status = response.get('payment_request').get('payment').get('status')
+    print(status)   # Payment status  
+    
+    if status != "Failed":
+        print("Payment Success")
+        try:
+            payment = Payment.objects.get(payment_request_id = payment_request_id)
+            payment.payment_id = payment_id
+            payment.payment_status = status
+            payment.save()
+
+            order = payment.order
+            order.order_status = "Placed"
+            order.save()
+
+            cart = []
+            request.session['cart'] = cart
+            Cart.objects.filter(user = user).delete()
+            return redirect('/orders/')  
+        except:
+            return render(request , template_name='store/payment_failed.html')
+    else:
+        return render(request , template_name='store/payment_failed.html')
+         
 
 
 

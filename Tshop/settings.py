@@ -143,3 +143,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/medid/images/uploded/'
 MEDIA_ROOT = BASE_DIR
+
+API_KEY = 'test_7b213440232364c830e1cff15c0'
+AUTH_TOKEN = 'test_05354ff312181df156c9ec2ed08'
