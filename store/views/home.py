@@ -24,6 +24,10 @@ def home(request):
     neckType = query.get('neckType')
     sleeve   = query.get('sleeve')
     color    = query.get('color')
+    page     = query.get('page')
+
+    if (page is None or page == ''):
+       page = 1
 
     if brand !="" and brand is not None:
        tshirts = tshirts.filter(brand__slug = brand)
@@ -47,7 +51,7 @@ def home(request):
 
     #tshirts = Tshirt.objects.filter(brand__slug = brand)
     cart = request.session.get('cart')
-    print(cart)
+    
     """
     for t in tshirts:
         #all_sizes = t.sizevariant_set.all()
@@ -57,8 +61,11 @@ def home(request):
         t.after_discount = t.min_price - (t.min_price * t.discount /100)
         t.after_discount = floor(t.after_discount)
     """
+    paginator = Paginator(tshirts, 3)
+    page_object = paginator.get_page(page)
+
     context = {
-        "tshirts" : tshirts,
+        "page_object" : page_object,
         "occasions" : occasions,
         "brands" : brands,
         "neckTypes" : neckTypes,
