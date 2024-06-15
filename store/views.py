@@ -3,7 +3,8 @@ from django.shortcuts import render , HttpResponse , redirect
 from store.forms.authforms import CustomerCreationForm , CustomerAuthForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login as loginUser, logout
-from store.models import Tshirt, SizeVariant , Cart, Order, OrderItem, Payment
+from store.models import Tshirt, SizeVariant , Cart, Order, OrderItem, Payment, Occasion, IdealFor, NeckType
+from store.models import Sleeve, Brand, Color
 from math import floor
 from django.contrib.auth.decorators import login_required
 from store.forms.checkout_form import CheckoutForm
@@ -18,7 +19,41 @@ API = Instamojo(api_key=API_KEY, auth_token=AUTH_TOKEN, endpoint='https://test.i
 # Create your views here.
 
 def home(request):
+
+    tshirts = []
+
     tshirts = Tshirt.objects.all()
+
+    query = request.GET
+
+    brand    = query.get('brand')
+    idealFor = query.get('idealFor')
+    occasion = query.get('occasion')
+    neckType = query.get('neckType')
+    sleeve   = query.get('sleeve')
+    color    = query.get('color')
+
+    if brand !="" and brand is not None:
+       tshirts = tshirts.filter(brand__slug = brand)
+    if neckType !="" and neckType is not None:
+       tshirts = tshirts.filter(neck_type__slug = neckType) 
+    if occasion !="" and occasion is not None:
+       tshirts = tshirts.filter(Occasion__slug = occasion) 
+    if idealFor !="" and idealFor is not None:
+       tshirts = tshirts.filter(ideal_for__slug = idealFor) 
+    if sleeve !="" and sleeve is not None:
+       tshirts = tshirts.filter(Sleeve__slug = sleeve) 
+    if color !="" and color is not None:
+       tshirts = tshirts.filter(color__slug = color)     
+
+    occasions = Occasion.objects.all()
+    brands = Brand.objects.all()
+    neckTypes = NeckType.objects.all()
+    sleeves = Sleeve.objects.all()
+    colors = Color.objects.all()
+    idealFors = IdealFor.objects.all()    
+
+    #tshirts = Tshirt.objects.filter(brand__slug = brand)
     cart = request.session.get('cart')
     print(cart)
     """
@@ -31,7 +66,13 @@ def home(request):
         t.after_discount = floor(t.after_discount)
     """
     context = {
-        "tshirts" : tshirts
+        "tshirts" : tshirts,
+        "occasions" : occasions,
+        "brands" : brands,
+        "neckTypes" : neckTypes,
+        "sleeves" : sleeves,
+        "colors" : colors,
+        "idealFors" : idealFors
     }
     return render(request , template_name='store/home.html' , context = context)
 
@@ -51,7 +92,8 @@ def cart(request):
 @login_required(login_url = '/login/')    
 def orders(request):
     user = request.user
-    orders = Order.objects.filter(user = user)
+    print(user)
+    orders = Order.objects.filter(user = user).order_by('-date').exclude(order_status = 'PENDING')
     context = {
         'orders' : orders 
     }

@@ -1,31 +1,112 @@
 {% extends "./base.html" %}
 {% load tshirt_tags %}
+{% load filter_tags %}
+
 
 {% block content %}
-<div class="container">    
-    <div class="row">
-    {% for tshirt in tshirts %}
-        <div class="col-4 mx-auto mt-2">    
-            <div class="card h-100" style="width: 18rem;">
-                <img src="{{ tshirt.image.url }}" class="card-img-top" alt="...">
-                <div class="card-body">
-                    <h5 class="card-title">{{ tshirt.name }}</h5>
-                    <span class="text-danger"><del> {% min_price tshirt as minPrice %}
-                    {{ minPrice|rupee }} </del></span>&nbsp;
-                    <span>{% sale_price tshirt as salePrice %} 
-                    {{ salePrice|rupee }}    
-                    </span>   
-                    <span class="float-right badge badge-info">Save {{ tshirt.discount }} %</span> 
-                                        
+<div class="container-fluid">    
+    <div class="row mt-1">
+        <div class="col-2 border">
+            <form id="filterForm" action="/" method="get">
+                <!-- Filter Div -->
+                <div class="product-filters">
+                    <!-- Brand Div -->
+                    <div class="form-group">
+                        <label for="brands">Brand</label>
+                        <select name="brand" class="form-control" id="brands" onchange="submitForm()">
+                        <option value="">Select Brand</option>
+                        {% for brand in brands %}                               
+                            <option {% selected_attr request.GET.brand brand.slug %}  value="{{brand.slug}}">{{brand.title}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <!-- IdealFor Div -->
+                    <div class="form-group">
+                        <label for="idealFor">Ideal For</label>
+                        <select name="idealFor" class="form-control" id="idealFor" onchange="submitForm()">
+                        <option value="">Select Ideal For</option>
+                        {% for idealFor in idealFors %}
+                            <option {% selected_attr request.GET.idealFor idealFor.slug %} value="{{idealFor.slug}}">{{idealFor.title}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>  
+                    <!-- Occasions Div -->
+                    <div class="form-group">
+                        <label for="occasion">Occasion</label>
+                        <select name="occasion" class="form-control" id="occasion" onchange="submitForm()">
+                        <option value="">Select Occasion</option>
+                        {% for occasion in occasions %}
+                            <option {% selected_attr request.GET.occasion  occasion.slug %} value="{{occasion.slug}}">{{occasion.title}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>  
+                    <!-- NeckTypes Div -->
+                    <div class="form-group">
+                        <label for="neckType">Neck Type</label>
+                        <select name="neckType" class="form-control" id="neckType" onchange="submitForm()">
+                        <option value="">Select Neck Type</option>
+                        {% for neckType in neckTypes %}
+                            <option {% selected_attr request.GET.neckType neckType.slug %} value="{{neckType.slug}}">{{neckType.title}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>  
+                    <!-- Sleeves Div -->
+                    <div class="form-group">
+                        <label for="sleeve">Sleeve Type</label>
+                        <select name="sleeve" class="form-control" id="sleeve" onchange="submitForm()">
+                        <option value="">Select Sleeve Type</option>
+                        {% for sleeve in sleeves %}
+                            <option {% selected_attr request.GET.sleeve sleeve.slug %} value="{{sleeve.slug}}">{{sleeve.title}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>  
+                    <!-- Colors Div -->
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <select name="color" class="form-control" id="color" onchange="submitForm()">
+                        <option value="">Select Color</option>
+                        {% for color in colors %}
+                            <option {% selected_attr request.GET.color color.slug %} value="{{color.slug}}">{{color.title}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <a href="/" class="btn btn-info btn-sm">Clear Filter</a>  
                 </div>
-                <div class="card-footer p-0">
-                    <a href="/product/{{ tshirt.slug }}" class="btn btn-light btn-block">See More</a>
-                </div>
-                   
+            </form>
+        </div>
+        <div class="col">
+            <div class="row">
+                {% for tshirt in tshirts %}
+                    <div class="col-4 mx-auto mt-2">    
+                        <div class="card h-100" style="width: 18rem;">
+                            <img src="{{ tshirt.image.url }}" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ tshirt.name }}</h5>
+                                <span class="text-danger"><del> {% min_price tshirt as minPrice %}
+                                {{ minPrice|rupee }} </del></span>&nbsp;
+                                <span>{% sale_price tshirt as salePrice %} 
+                                {{ salePrice|rupee }}    
+                                </span>   
+                                <span class="float-right badge badge-info">Save {{ tshirt.discount }} %</span> 
+                                                    
+                            </div>
+                            <div class="card-footer p-0">
+                                <a href="/product/{{ tshirt.slug }}" class="btn btn-light btn-block">See More</a>
+                            </div>
+                               
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
-    {% endfor %}
     </div>
-</div>    
+</div> 
+
+<script>
+    function submitForm() {
+        document.getElementById('filterForm').submit();
+    }
+</script>
+
 {% endblock %}
 

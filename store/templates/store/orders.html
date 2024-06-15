@@ -1,6 +1,58 @@
 {% extends "./base.html" %}
+{% load tshirt_tags %}
+{% load order_tags %}
 
 {% block content %}
-<h2> Orders Page</h2>
-{{ orders }}
+    <div class="container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Items</th> 
+                    <th>Status</th>                   
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ order.date|date }}</td>
+                        <td>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Image</th>
+                                        <th>Tshirt</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>                                        
+                                    </tr>
+                                </thead> 
+                                
+                                <tbody>
+                                    {% for oi in order.orderitem_set.all %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td><img height="60px" class="border" src="{{ oi.tshirt.image.url }}" alt=""></td>
+                                        <td>{{ oi.tshirt.name }}</td>
+                                        <td>{{ oi.price|rupee }}</td>
+                                        <td>{{ oi.quantity }}</td>
+                                        <td>{% multiply oi.quantity oi.price as result  %} {{ result|rupee }}</td>                                        
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                        <td>                           
+                            <span class="badge badge-{% get_order_status_class order.order_status  %}">{{ order.order_status }}</span>                            
+                           
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
 {% endblock %}
