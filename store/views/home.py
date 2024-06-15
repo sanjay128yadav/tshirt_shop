@@ -8,6 +8,7 @@ from store.models import Sleeve, Brand, Color
 from math import floor
 from django.contrib.auth.decorators import login_required
 from store.forms.checkout_form import CheckoutForm
+from django.core.paginator import Paginator
 
 def home(request):
 

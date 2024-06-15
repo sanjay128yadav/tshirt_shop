@@ -77,9 +77,9 @@ def signup(request):
         if form.is_valid():
             user = form.save()
             user.email = user.username
-            user.save()
-            print(user)
-            return render(request , template_name='store/login.html')
+            user.save()            
+            return redirect('login')
+            # return render(request , template_name='store/login.html')
         else:
             context = {
                 "form": form
