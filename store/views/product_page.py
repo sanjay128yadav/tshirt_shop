@@ -7,19 +7,25 @@ from store.models import Sleeve, Brand, Color
 from math import floor
 from django.contrib.auth.decorators import login_required
 from store.forms.checkout_form import CheckoutForm
+from django.views.generic.detail import DetailView
 
-def show_prduct(request , slug):
-    tshirt = Tshirt.objects.get(slug=slug)    
+class ProductDetailView(DetailView):
+    template_name = 'store/product_detail.html'
+    model = Tshirt
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tshirt = context.get('tshirt')
+        request = self.request  
     
-    if request.GET.get('size'):
-        sizeget = request.GET.get('size')
-    else:        
-        sizeget = tshirt.sizevariant_set.all().order_by('price').first().size
+        if request.GET.get('size'):
+            sizeget = request.GET.get('size')
+        else:        
+            sizeget = tshirt.sizevariant_set.all().order_by('price').first().size
 
-    sizeobj = tshirt.sizevariant_set.get(size = sizeget)
-    size_price = sizeobj.price
-    sale_price = size_price - (size_price * (tshirt.discount / 100))    
-    context = {
-        'tshirt': tshirt , 'price': size_price , 'sale_price': sale_price, 'active_size': sizeobj
-    }
-    return render(request, template_name='store/product_detail.html', context= context)
+        sizeobj = tshirt.sizevariant_set.get(size = sizeget)
+        size_price = sizeobj.price
+        sale_price = size_price - (size_price * (tshirt.discount / 100))    
+        context = {
+            'tshirt': tshirt , 'price': size_price , 'sale_price': sale_price, 'active_size': sizeobj
+        }
+        return context

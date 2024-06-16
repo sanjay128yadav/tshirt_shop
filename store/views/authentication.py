@@ -9,16 +9,17 @@ from math import floor
 from django.contrib.auth.decorators import login_required
 # from store.forms.checkout_form import CheckoutForm
 from store.forms import CheckoutForm, CustomerCreationForm, CustomerAuthForm
+from django.views.generic.base import View
 
-def login(request):
-    if request.method == 'GET':
+class LoginView(View):
+    def get(self, request):
         form = CustomerAuthForm
         next_page = request.GET.get('next')
         if next_page is not None:
             request.session['next_page'] = next_page
         return render(request , template_name='store/login.html', context= { 'form' : form })
-    else:
-        print(request.POST)
+    
+    def post(self, request):
         form = CustomerAuthForm(data = request.POST)
         
         if form.is_valid():
@@ -59,6 +60,7 @@ def login(request):
         else:
             #form = AuthenticationForm
             return render(request , template_name='store/login.html', context= { 'form' : form })
+
 
 def signup(request):
 
