@@ -14,3 +14,6 @@ class SizeVariant(models.Model):
     price = models.IntegerField(null=False)    
     tshirt = models.ForeignKey(Tshirt, on_delete=models.CASCADE)
     size = models.CharField(choices=SIZE, max_length=5)
+
+    def __str__(self):
+        return f'{self.size}'

@@ -79,7 +79,7 @@
                 {% for tshirt in page_object %}
                     <div class="col-4 mx-auto mt-2">    
                         <div class="card h-100" style="width: 18rem;">
-                            <img src="{{ tshirt.image.url }}" class="card-img-top" alt="...">
+                            <img style="max-height: 350px; width: auto;" src="{{ tshirt.image.url }}" class="card-img-top" alt="...">
                             <div class="card-body">
                                 <h5 class="card-title">{{ tshirt.name }}</h5>
                                 <span class="text-danger"><del> {% min_price tshirt as minPrice %}
@@ -97,27 +97,25 @@
                         </div>
                     </div>
                 {% endfor %}
-
-                <nav aria-label="Page navigation" class="mt-2">
-                    <ul class="pagination justify-content-end">
-
-                        {% if page_object.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page=1" >&laquo; first</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_object.previous_page_number }}">previous</a></li>
-                        {% endif %}  
-                        
-                        <li class="page-item">
-                            <a class="page-link" href="#">Page {{ page_object.number }} of {{ page_object.paginator.num_pages }}.</a>
-                        </li>
-
-                        {% if page_object.has_next %}
-                            <li class="page-item"><a class="page-link" href="?page={{ page_object.next_page_number }}">next</a></li>
-                            <li class="page-item"><a class="page-link" href="?page={{ page_object.paginator.num_pages }}">last &raquo;</a></li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                
             </div>
+            <nav aria-label="Page navigation" class="mt-2" style="margin-right: 100px;">
+                <ul class="pagination justify-content-end">
+
+                    {% if page_object.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?{{pageurl}}1" >&laquo; first</a></li>        
+                    <li class="page-item"><a class="page-link" href="?{{pageurl}}{{ page_object.previous_page_number }}">previous</a></li>
+                    {% endif %}  
+                    
+                    <li class="page-item">
+                        <a class="page-link" href="#">Page {{ page_object.number }} of {{ page_object.paginator.num_pages }}.</a>
+                    </li>
+
+                    {% if page_object.has_next %}
+                        <li class="page-item"><a class="page-link" href="?{{pageurl}}{{ page_object.next_page_number }}">next</a></li>
+                        <li class="page-item"><a class="page-link" href="?{{pageurl}}{{ page_object.paginator.num_pages }}">last &raquo;</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
     </div>
 </div> 

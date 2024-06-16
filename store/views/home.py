@@ -9,6 +9,7 @@ from math import floor
 from django.contrib.auth.decorators import login_required
 from store.forms.checkout_form import CheckoutForm
 from django.core.paginator import Paginator
+from urllib.parse import urlencode
 
 def home(request):
 
@@ -64,6 +65,11 @@ def home(request):
     paginator = Paginator(tshirts, 3)
     page_object = paginator.get_page(page)
 
+    query = request.GET.copy()
+    query['page'] = ''
+    pageurl = urlencode(query)
+    
+
     context = {
         "page_object" : page_object,
         "occasions" : occasions,
@@ -71,6 +77,7 @@ def home(request):
         "neckTypes" : neckTypes,
         "sleeves" : sleeves,
         "colors" : colors,
-        "idealFors" : idealFors
+        "idealFors" : idealFors,
+        "pageurl" : pageurl
     }
     return render(request , template_name='store/home.html' , context = context)
